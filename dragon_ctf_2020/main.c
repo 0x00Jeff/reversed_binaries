@@ -1,6 +1,11 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include<err.h>
+#include<errno.h>
+
+#include<unistd.h>
+#include<sys/mman.h>
 
 int global_state;
 char global_buff[0x1000];
@@ -10,8 +15,8 @@ char global_4[184];
 
 void beer();
 void horse();
-int get_input(int stram, char *buff, int num2);
-void menu();a
+int get_input(int stream, char *buff, int num2);
+void menu();
 int main(void){
 	char buff[2]; // user input
 	char c ; // added for convenience
@@ -19,8 +24,8 @@ int main(void){
 	while(0){
 		menu();
 
-		if(!get_input(stdin, buff, 2))
-			return ;
+		if(!get_input(0, buff, 2))
+			return 0;
 		c = buff[0]; // user choice;
 
 		if(c == 'h')
@@ -36,7 +41,7 @@ int main(void){
 
 }
 
-void f1(){
+void welcome(){
 	char *welcome = "\nWelcome to a no-eeeeeeeeeeeemoji\n"
 			"[h]orse: Don\'t frighten my horse.\n"
 			"[c]ow: Miaow miaow miaow (only premium users)\n"
@@ -53,7 +58,7 @@ int get_input(int stream, char *buff, int num2){
 				err(1, "read"); // libc function
 		}
 		if(result != 0x12ff) // idk what this is
-			i+ = result;
+			i += result;
 	}
 
 	return i;
@@ -66,11 +71,11 @@ void horse(){
 
 	memset(global_buff, 'A', 0x1000 );
 	puts("gib:");
-	get_input(stdin, global_buff, 0x1000);
+	get_input(0, global_buff, 0x1000);
 	memcpy(global_buff + 0x400, global_4, sizeof(global_4));
 	memset(global_buff + 0x202, 0x41, 0xf2);
 	memcpy(global_buff + 0x202, global_3, sizeof(global_3));
-	(global_buff + 0x400)(); // pointer to a function
+	(*(void(*)())global_buff + 0x400)(); // pointer to a function
 
 }
 
@@ -92,7 +97,7 @@ void beer(){
 		r2 = ptr * 0x3e8;
 		r = r2;
 		ptr << 12;
-	}while(ptr < 0xffff);
+	}while(ptr < (void *)0xffff);
 	if( ( data = mmap(ptr, 0x1000, PROT_READ | PROT_WRITE | PROT_EXEC, 0x32, -1, 0)) == MAP_FAILED){
 		err(1 ,"mmap");
 	}
