@@ -7,10 +7,10 @@
 #include<unistd.h>
 #include<sys/mman.h>
 
+void *mapped_data;
 int global_state;
-char global_buff[0x1000];
-char global_3[62];
-char global_4[184];
+char smol_global_buff[62];
+char big_global_buff[184];
 
 
 void beer();
@@ -69,18 +69,18 @@ void horse(){
 		errx(1, "you scared my horse"); // libc function
 	}
 
-	memset(global_buff, 'A', 0x1000 );
+	memset(mapped_data, 'A', 0x1000 );
 	puts("gib:");
-	get_input(0, global_buff, 0x1000);
-	memcpy(global_buff + 0x400, global_4, sizeof(global_4));
-	memset(global_buff + 0x202, 0x41, 0xf2);
-	memcpy(global_buff + 0x202, global_3, sizeof(global_3));
-	(*(void(*)())global_buff + 0x400)(); // pointer to a function
+	get_input(0, mapped_data, 0x1000);
+	memcpy(mapped_data + 0x400, big_global_buff, 0xb8);
+	memset(mapped_data + 0x100, 'A', 0x100);
+	memset(mapped_data + 0x202, 'A', 0xfe);
+	memcpy(mapped_data + 0x202, smol_global_buff, 0x3e);
+	(*(void(*)())mapped_data + 0x400)(); // pointer to a function
 
 }
 
 void beer(){
-	void *data;
 	void *ptr;
 	int r, r2;
 	// randomizing the first argument to mmap()
@@ -98,9 +98,9 @@ void beer(){
 		r = r2;
 		ptr << 12;
 	}while(ptr < (void *)0xffff);
-	if( ( data = mmap(ptr, 0x1000, PROT_READ | PROT_WRITE | PROT_EXEC, 0x32, -1, 0)) == MAP_FAILED){
+	if( ( mapped_data = mmap(ptr, 0x1000, PROT_READ | PROT_WRITE | PROT_EXEC, 0x32, -1, 0)) == MAP_FAILED){
 		err(1 ,"mmap");
 	}
-	// we set something here to 1 but I'm not sure what it is
-	printf("map() at @%p\n", data);
+	global_state = 1; // this variable is used in horse()
+	printf("map() at @%p\n", mapped_data);
 }
