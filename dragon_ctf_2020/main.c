@@ -5,6 +5,9 @@
 #include<errno.h>
 
 #include<unistd.h>
+#include<sys/types.h>
+#include<sys/stat.h>
+#include<fcntl.h>
 #include<sys/mman.h>
 
 void *mapped_data;
@@ -13,6 +16,8 @@ char smol_global_buff[62];
 char big_global_buff[184];
 
 
+sub_1306(); // found in sub_1412();
+void sub_1412(); // found in smol_shellcode
 void beer();
 void horse();
 int get_input(int stream, char *buff, int num2);
@@ -103,4 +108,34 @@ void beer(){
 	}
 	global_state = 1; // this variable is used in horse()
 	printf("map() at @%p\n", mapped_data);
+}
+
+void sub_1412(){
+	setbuf(stdin, NULL);
+	setbuf(stdout, NULL);
+	setbuf(stderr, NULL);
+
+
+	sub_1306();
+	// ?? the function isn't complete, the rests of it is probably in one of the shellcode, and is being copied here in horse()
+}
+
+void sub_1306(){
+	long buff[0x1f2];
+	char *buff2; // var_1010;
+	char *buff3;
+	int i;
+	int fd = open("/proc/self/maps");
+	if(fd < 0){
+		err(1, "open maps");
+	}
+	for(i = 0; i < 0x1fe; i++)
+		buff[i] = 0;
+	// smtg here with buff2, this functions still missing some pieaces here and has some wrong details about the buffers
+	get_input(fd, buff3, 0xfff);
+	puts(buff3);
+	if(close(fd) < 0)
+		err(1, "close");
+
+
 }
